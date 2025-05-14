@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import ChatMessage, { MessageType } from './ChatMessage';
 import TypingIndicator from './TypingIndicator';
 import DocumentUploader from './DocumentUploader';
+import { sendMessageToServer, uploadDocumentToServer } from '@/services/api';
 
 const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<MessageType[]>([
@@ -20,6 +21,7 @@ const ChatBot: React.FC = () => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [documentUploaded, setDocumentUploaded] = useState(false);
+  const [documentName, setDocumentName] = useState<string | undefined>(undefined);
   const [showUploader, setShowUploader] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -29,7 +31,7 @@ const ChatBot: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (input.trim() === '') return;
 
     // Add user message
@@ -44,51 +46,59 @@ const ChatBot: React.FC = () => {
     setInput('');
     setIsTyping(true);
 
-    // Simulate a bot response
-    setTimeout(() => {
-      let botResponse: MessageType;
-
-      if (documentUploaded) {
-        botResponse = {
-          id: (Date.now() + 1).toString(),
-          content: `I'm analyzing your document in relation to: "${input.trim()}". In a real implementation, this would use AI to process your question against the uploaded document.`,
-          type: 'bot',
-          timestamp: new Date(),
-        };
-      } else {
-        botResponse = {
-          id: (Date.now() + 1).toString(),
-          content: `You asked: "${input.trim()}". For more specific answers, you can also upload a document using the upload button below the chat.`,
-          type: 'bot',
-          timestamp: new Date(),
-        };
-      }
-
+    try {
+      // Send message to server API
+      const response = await sendMessageToServer(input.trim(), {
+        isUploaded: documentUploaded,
+        fileName: documentName
+      });
+      
       setIsTyping(false);
-      setMessages(prev => [...prev, botResponse]);
-    }, 1500);
+      setMessages(prev => [...prev, response]);
+    } catch (error) {
+      setIsTyping(false);
+      toast({
+        title: "Error",
+        description: "Failed to get response from the server.",
+        variant: "destructive",
+      });
+      console.error('Error sending message:', error);
+    }
   };
 
-  const handleUpload = (file: File) => {
-    // In a real implementation, we'd process the PDF here
-    // For now, we'll just acknowledge the upload
-    toast({
-      title: "Document uploaded successfully",
-      description: `We've received your document: ${file.name}`,
-    });
-    
-    setDocumentUploaded(true);
-    setShowUploader(false);
-    
-    // Add a system message acknowledging the document
-    const systemMessage: MessageType = {
-      id: Date.now().toString(),
-      content: `I've received your document: ${file.name}. You can now ask me questions about it!`,
-      type: 'bot',
-      timestamp: new Date(),
-    };
-    
-    setMessages(prev => [...prev, systemMessage]);
+  const handleUpload = async (file: File) => {
+    try {
+      // Upload document to server
+      const response = await uploadDocumentToServer(file);
+      
+      if (response.success) {
+        toast({
+          title: "Document uploaded successfully",
+          description: `We've received your document: ${file.name}`,
+        });
+        
+        setDocumentUploaded(true);
+        setDocumentName(file.name);
+        setShowUploader(false);
+        
+        // Add a system message acknowledging the document
+        const systemMessage: MessageType = {
+          id: Date.now().toString(),
+          content: `I've received your document: ${file.name}. You can now ask me questions about it!`,
+          type: 'bot',
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, systemMessage]);
+      }
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: "There was an error uploading your document.",
+        variant: "destructive",
+      });
+      console.error('Error uploading document:', error);
+    }
   };
 
   const toggleUploader = () => {
