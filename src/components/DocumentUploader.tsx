@@ -69,22 +69,25 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({ onUpload }) => {
   }, []);
 
   return (
-    <div className="w-full mb-4">
+    <div className="w-full mb-3">
       {!selectedFile ? (
         <div 
-          className={`border-2 border-dashed ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'} 
-            rounded-lg p-6 transition-colors duration-200 ease-in-out`}
+          className={`border border-dashed ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'} 
+            rounded-lg p-3 transition-colors duration-200 ease-in-out text-center`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
           <div className="flex flex-col items-center justify-center">
-            <Upload className="mb-2 h-12 w-12 text-gray-400" />
-            <p className="mb-2 text-sm text-gray-700">
-              <span className="font-semibold">Click to upload</span> or drag and drop
+            <Upload className="mb-1 h-5 w-5 text-gray-400" />
+            <p className="mb-1 text-xs text-gray-700">
+              <span className="font-medium">Drop PDF</span> or 
+              <span className="text-indigo-500 ml-1 cursor-pointer" 
+                onClick={() => document.getElementById('file-upload')?.click()}>
+                browse
+              </span>
             </p>
-            <p className="text-xs text-gray-500">PDF files only (up to 10MB)</p>
             <input
               id="file-upload"
               name="file-upload"
@@ -93,39 +96,33 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({ onUpload }) => {
               className="hidden"
               onChange={handleChange}
             />
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4"
-              onClick={() => document.getElementById('file-upload')?.click()}
-            >
-              Select File
-            </Button>
           </div>
         </div>
       ) : (
-        <div className="border rounded-lg p-4">
-          <div className="flex items-center justify-between mb-2">
+        <div className="border rounded-lg p-2">
+          <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <FileText className="h-6 w-6 text-indigo-500 mr-2" />
-              <div>
-                <p className="text-sm font-medium text-gray-700">{selectedFile.name}</p>
-                <p className="text-xs text-gray-500">
-                  {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-                </p>
-              </div>
+              <FileText className="h-4 w-4 text-indigo-500 mr-2" />
+              <p className="text-xs font-medium text-gray-700 truncate max-w-[120px]">{selectedFile.name}</p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={removeFile}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center space-x-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={removeFile}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+              <Button 
+                onClick={handleSubmit} 
+                size="sm" 
+                className="text-xs py-1 h-6 bg-indigo-600 hover:bg-indigo-700"
+              >
+                Upload
+              </Button>
+            </div>
           </div>
-          <Button onClick={handleSubmit} className="w-full bg-indigo-600 hover:bg-indigo-700">
-            Upload and Chat
-          </Button>
         </div>
       )}
     </div>

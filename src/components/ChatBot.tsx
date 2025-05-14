@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send } from 'lucide-react';
+import { Send, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ChatMessage, { MessageType } from './ChatMessage';
 import TypingIndicator from './TypingIndicator';
@@ -12,7 +12,7 @@ const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<MessageType[]>([
     {
       id: '1',
-      content: 'Hello! I\'m your document assistant. Please upload a document and I\'ll help you understand it.',
+      content: 'Hello! I\'m your document assistant. You can chat with me directly or upload a document for more specific assistance.',
       type: 'bot',
       timestamp: new Date(),
     },
@@ -20,6 +20,7 @@ const ChatBot: React.FC = () => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [documentUploaded, setDocumentUploaded] = useState(false);
+  const [showUploader, setShowUploader] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -47,17 +48,17 @@ const ChatBot: React.FC = () => {
     setTimeout(() => {
       let botResponse: MessageType;
 
-      if (!documentUploaded) {
+      if (documentUploaded) {
         botResponse = {
           id: (Date.now() + 1).toString(),
-          content: 'Please upload a document first so I can assist you with specific information.',
+          content: `I'm analyzing your document in relation to: "${input.trim()}". In a real implementation, this would use AI to process your question against the uploaded document.`,
           type: 'bot',
           timestamp: new Date(),
         };
       } else {
         botResponse = {
           id: (Date.now() + 1).toString(),
-          content: `I'm analyzing your document in relation to: "${input.trim()}". In a real implementation, this would use AI to process your question against the uploaded document.`,
+          content: `You asked: "${input.trim()}". For more specific answers, you can also upload a document using the upload button below the chat.`,
           type: 'bot',
           timestamp: new Date(),
         };
@@ -77,6 +78,7 @@ const ChatBot: React.FC = () => {
     });
     
     setDocumentUploaded(true);
+    setShowUploader(false);
     
     // Add a system message acknowledging the document
     const systemMessage: MessageType = {
@@ -87,6 +89,10 @@ const ChatBot: React.FC = () => {
     };
     
     setMessages(prev => [...prev, systemMessage]);
+  };
+
+  const toggleUploader = () => {
+    setShowUploader(prev => !prev);
   };
 
   return (
@@ -100,8 +106,8 @@ const ChatBot: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Document uploader - shown only if document not uploaded yet */}
-      {!documentUploaded && (
+      {/* Document uploader - shown only when toggle is clicked */}
+      {showUploader && (
         <div className="px-4">
           <DocumentUploader onUpload={handleUpload} />
         </div>
@@ -118,10 +124,19 @@ const ChatBot: React.FC = () => {
             className="flex-1"
           />
           <Button 
+            onClick={toggleUploader}
+            size="icon"
+            variant="outline"
+            className="flex-shrink-0"
+            title="Upload Document"
+          >
+            <Upload className="h-4 w-4" />
+          </Button>
+          <Button 
             onClick={handleSendMessage} 
             size="icon"
             disabled={input.trim() === ''}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-indigo-600 hover:bg-indigo-700 flex-shrink-0"
           >
             <Send className="h-4 w-4" />
           </Button>
