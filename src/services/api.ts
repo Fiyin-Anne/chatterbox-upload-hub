@@ -21,7 +21,17 @@ export const sendMessageToServer = async (
   if (documentInfo.isUploaded) {
     botResponse = `I'm analyzing your document in relation to: "${message}". In a real implementation, this would use AI to process your question against the uploaded document: ${documentInfo.fileName}.`;
   } else {
-    botResponse = `You asked: "${message}". For more specific answers, you can also upload a document using the upload button below the chat.`;
+    // use fetch to call your backend
+    const response = await fetch('http://localhost:3000/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({message, documentInfo}),
+    });
+  
+    const result = await response.json();
+    botResponse = result.response;
   }
   
   return {
@@ -36,7 +46,7 @@ export const uploadDocumentToServer = async (file: File): Promise<{ success: boo
   // Simulate network latency for file upload
   await new Promise(resolve => setTimeout(resolve, 1500));
   
-  // In a real implementation, this would upload the file to a server
+  // TO-DO: upload file OR accepts web links only
   console.log(`Document ${file.name} would be uploaded to server`);
   
   return {
