@@ -1,5 +1,6 @@
-# Welcome to your Lovable project
+# CHATTERBOX-HUB
 
+<!---
 ## Project info
 
 **URL**: https://lovable.dev/projects/28a10501-d05d-4a1a-b83e-67d9573ccc50
@@ -71,3 +72,4 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+-->
